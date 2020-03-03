@@ -94,6 +94,8 @@ def glob1(dirname, pattern):
             dirname = os.curdir.encode('ASCII')
         else:
             dirname = os.curdir
+        if os.name == 'riscos' and dirname[-1] == '.':
+            dirname = dirname[:-1]
     try:
         names = os.listdir(dirname)
     except OSError:
