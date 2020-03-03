@@ -37,14 +37,15 @@ class sdist(sdist_add_defaults, orig.sdist):
 
     negative_opt = {}
 
-    README_EXTENSIONS = ['', '.rst', '.txt', '.md']
+    README_EXTENSIONS = ['', os.extsep+'rst', os.extsep+'txt', os.extsep+'md']
     READMES = tuple('README{0}'.format(ext) for ext in README_EXTENSIONS)
 
     def run(self):
         self.run_command('egg_info')
         ei_cmd = self.get_finalized_command('egg_info')
         self.filelist = ei_cmd.filelist
-        self.filelist.append(os.path.join(ei_cmd.egg_info, 'SOURCES.txt'))
+        self.filelist.append(os.path.join(ei_cmd.egg_info,
+                                          f'SOURCES{os.extsep}txt'))
         self.check_readme()
 
         # Run sub commands
@@ -158,12 +159,12 @@ class sdist(sdist_add_defaults, orig.sdist):
         orig.sdist.make_release_tree(self, base_dir, files)
 
         # Save any egg_info command line options used to create this sdist
-        dest = os.path.join(base_dir, 'setup.cfg')
+        dest = os.path.join(base_dir, f'setup{os.extsep}cfg')
         if hasattr(os, 'link') and os.path.exists(dest):
             # unlink and re-copy, since it might be hard-linked, and
             # we don't want to change the source version
             os.unlink(dest)
-            self.copy_file('setup.cfg', dest)
+            self.copy_file(f'setup{os.extsep}cfg', dest)
 
         self.get_finalized_command('egg_info').save_version_info(dest)
 

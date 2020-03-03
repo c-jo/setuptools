@@ -218,7 +218,7 @@ class egg_info(InfoCommon, Command):
             self.egg_base = (dirs or {}).get('', os.curdir)
 
         self.ensure_dirname('egg_base')
-        self.egg_info = to_filename(self.egg_name) + '.egg-info'
+        self.egg_info = to_filename(self.egg_name) + os.extsep + 'egg-info'
         if self.egg_base != os.curdir:
             self.egg_info = os.path.join(self.egg_base, self.egg_info)
         if '-' in self.egg_name:
@@ -289,7 +289,7 @@ class egg_info(InfoCommon, Command):
             writer(self, ep.name, os.path.join(self.egg_info, ep.name))
 
         # Get rid of native_libs.txt if it was put there by older bdist_egg
-        nl = os.path.join(self.egg_info, "native_libs.txt")
+        nl = os.path.join(self.egg_info, f"native_libs{os.extsep}txt")
         if os.path.exists(nl):
             self.delete_file(nl)
 
@@ -297,14 +297,15 @@ class egg_info(InfoCommon, Command):
 
     def find_sources(self):
         """Generate SOURCES.txt manifest file"""
-        manifest_filename = os.path.join(self.egg_info, "SOURCES.txt")
+        manifest_filename = os.path.join(self.egg_info,
+                                         f"SOURCES{os.extsep}txt")
         mm = manifest_maker(self.distribution)
         mm.manifest = manifest_filename
         mm.run()
         self.filelist = mm.filelist
 
     def check_broken_egg_info(self):
-        bei = self.egg_name + '.egg-info'
+        bei = self.egg_name + os.extsep + 'egg-info'
         if self.egg_base != os.curdir:
             bei = os.path.join(self.egg_base, bei)
         if os.path.exists(bei):
@@ -329,6 +330,14 @@ class FileList(_FileList):
         # three are defined depends on the action; it'll be either
         # patterns, (dir and patterns), or (dir_pattern).
         (action, patterns, dir, dir_pattern) = self._parse_template_line(line)
+        if os.name == 'riscos':
+            if patterns:
+                patterns_ = []
+                for pattern in patterns:
+                    patterns_.append(pattern.replace('.','/'))
+                patterns = patterns_
+            if dir:
+                dir = dir.replace('/','.')
 
         # OK, now we know that the action is valid and we have the
         # right number of words on the line for that action -- so we
@@ -516,7 +525,7 @@ class FileList(_FileList):
 
 
 class manifest_maker(sdist):
-    template = "MANIFEST.in"
+    template = f"MANIFEST{os.extsep}in"
 
     def initialize_options(self):
         self.use_defaults = 1
@@ -577,10 +586,10 @@ class manifest_maker(sdist):
         elif os.path.exists(self.manifest):
             self.read_manifest()
 
-        if os.path.exists("setup.py"):
+        if os.path.exists(f"setup{os.extsep}py"):
             # setup.py should be included by default, even if it's not
             # the script called to create the sdist
-            self.filelist.append("setup.py")
+            self.filelist.append(f"setup{os.extsep}py")
 
         ei_cmd = self.get_finalized_command('egg_info')
         self.filelist.graft(ei_cmd.egg_info)

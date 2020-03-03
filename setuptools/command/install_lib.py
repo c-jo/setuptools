@@ -69,6 +69,10 @@ class install_lib(orig.install_lib):
         cache files).
         """
         # always exclude the package module itself
+        if os.name == 'riscos':
+            yield '__init__'
+            yield '__init__/py'
+
         yield '__init__.py'
 
         yield '__init__.pyc'

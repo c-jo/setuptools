@@ -451,7 +451,7 @@ class easy_install(Command):
         """Verify that self.install_dir is .pth-capable dir, if needed"""
 
         instdir = normalize_path(self.install_dir)
-        pth_file = os.path.join(instdir, 'easy-install.pth')
+        pth_file = os.path.join(instdir, 'easy-install'+os.extsep+'pth')
 
         # Is it a configured, PYTHONPATH, implicit, or explicit site dir?
         is_site_dir = instdir in self.all_site_dirs
@@ -538,8 +538,8 @@ class easy_install(Command):
         """Empirically verify whether .pth files are supported in inst. dir"""
         instdir = self.install_dir
         log.info("Checking .pth file support in %s", instdir)
-        pth_file = self.pseudo_tempname() + ".pth"
-        ok_file = pth_file + '.ok'
+        pth_file = self.pseudo_tempname() + os.extsep + "pth"
+        ok_file = pth_file + os.extsep + 'ok'
         ok_exists = os.path.exists(ok_file)
         tmpl = _one_liner("""
             import os
@@ -847,16 +847,16 @@ class easy_install(Command):
 
     def install_eggs(self, spec, dist_filename, tmpdir):
         # .egg dirs or files are already built, so just return them
-        if dist_filename.lower().endswith('.egg'):
+        if dist_filename.lower().endswith(os.extsep+'egg'):
             return [self.install_egg(dist_filename, tmpdir)]
-        elif dist_filename.lower().endswith('.exe'):
+        elif dist_filename.lower().endswith(os.extsep+'exe'):
             return [self.install_exe(dist_filename, tmpdir)]
-        elif dist_filename.lower().endswith('.whl'):
+        elif dist_filename.lower().endswith(os.extsep+'whl'):
             return [self.install_wheel(dist_filename, tmpdir)]
 
         # Anything else, try to extract and build
         setup_base = tmpdir
-        if os.path.isfile(dist_filename) and not dist_filename.endswith('.py'):
+        if os.path.isfile(dist_filename) and not dist_filename.endswith(os.extsep+'py'):
             unpack_archive(dist_filename, tmpdir, self.unpack_progress)
         elif os.path.isdir(dist_filename):
             setup_base = os.path.abspath(dist_filename)
@@ -866,10 +866,9 @@ class easy_install(Command):
             setup_base = self.maybe_move(spec, dist_filename, setup_base)
 
         # Find the setup.py file
-        setup_script = os.path.join(setup_base, 'setup.py')
-
+        setup_script = os.path.join(setup_base, f'setup{os.extsep}py')
         if not os.path.exists(setup_script):
-            setups = glob(os.path.join(setup_base, '*', 'setup.py'))
+            setups = glob(os.path.join(setup_base, '*', f'setup{os.extsep}py'))
             if not setups:
                 raise DistutilsError(
                     "Couldn't find a setup script in %s" %
@@ -966,9 +965,9 @@ class easy_install(Command):
         )
 
         # Convert the .exe to an unpacked egg
-        egg_path = os.path.join(tmpdir, dist.egg_name() + '.egg')
+        egg_path = os.path.join(tmpdir, dist.egg_name() + os.extsep + 'egg')
         dist.location = egg_path
-        egg_tmp = egg_path + '.tmp'
+        egg_tmp = egg_path + os.extsep + 'tmp'
         _egg_info = os.path.join(egg_tmp, 'EGG-INFO')
         pkg_inf = os.path.join(_egg_info, 'PKG-INFO')
         ensure_directory(pkg_inf)  # make sure EGG-INFO dir exists
@@ -1043,7 +1042,7 @@ class easy_install(Command):
 
         for name in 'top_level', 'native_libs':
             if locals()[name]:
-                txt = os.path.join(egg_tmp, 'EGG-INFO', name + '.txt')
+                txt = os.path.join(egg_tmp, 'EGG-INFO', name + os.extsep + 'txt')
                 if not os.path.exists(txt):
                     f = open(txt, 'w')
                     f.write('\n'.join(locals()[name]) + '\n')
@@ -1190,7 +1189,7 @@ class easy_install(Command):
             fetch_options[key.replace('_', '-')] = val[1]
         # create a settings dictionary suitable for `edit_config`
         settings = dict(easy_install=fetch_options)
-        cfg_filename = os.path.join(base, 'setup.cfg')
+        cfg_filename = os.path.join(base, f'setup{os.extsep}cfg')
         setopt.edit_config(cfg_filename, settings)
 
     def update_pth(self, dist):
@@ -1223,7 +1222,8 @@ class easy_install(Command):
             if dist.key == 'setuptools':
                 # Ensure that setuptools itself never becomes unavailable!
                 # XXX should this check for latest version?
-                filename = os.path.join(self.install_dir, 'setuptools.pth')
+                filename = os.path.join(self.install_dir,
+                                        f'setuptools{os.extsep}pth')
                 if os.path.islink(filename):
                     os.unlink(filename)
                 f = open(filename, 'wt')
@@ -1240,9 +1240,9 @@ class easy_install(Command):
         to_chmod = []
 
         def pf(src, dst):
-            if dst.endswith('.py') and not src.startswith('EGG-INFO/'):
+            if dst.endswith(os.extsep+'py') and not src.startswith('EGG-INFO'+os.sep):
                 to_compile.append(dst)
-            elif dst.endswith('.dll') or dst.endswith('.so'):
+            elif dst.endswith(os.extsep+'dll') or dst.endswith(os.extsep+'so'):
                 to_chmod.append(dst)
             self.unpack_progress(src, dst)
             return not self.dry_run and dst or None
@@ -1314,8 +1314,8 @@ class easy_install(Command):
         if self.sitepy_installed:
             return  # already did it, or don't need to
 
-        sitepy = os.path.join(self.install_dir, "site.py")
-        source = resource_string("setuptools", "site-patch.py")
+        sitepy = os.path.join(self.install_dir, f"site{os.extsep}py")
+        source = resource_string("setuptools", f"site-patch{os.extsep}py")
         source = source.decode('utf-8')
         current = ""
 

@@ -17,10 +17,10 @@ def config_file(kind="local"):
     `kind` must be one of "local", "global", or "user"
     """
     if kind == 'local':
-        return 'setup.cfg'
+        return f'setup{os.extsep}cfg'
     if kind == 'global':
         return os.path.join(
-            os.path.dirname(distutils.__file__), 'distutils.cfg'
+            os.path.dirname(distutils.__file__), f'distutils{os.extsep}cfg'
         )
     if kind == 'user':
         dot = os.name == 'posix' and '.' or ''

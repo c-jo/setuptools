@@ -118,7 +118,11 @@ class bdist_egg(Command):
                 self.distribution.has_ext_modules() and self.plat_name
             ).egg_name()
 
-            self.egg_output = os.path.join(self.dist_dir, basename + '.egg')
+            if os.name == 'riscos':
+                basename = basename.replace('.','/')
+                self.egg_output = os.path.join(self.dist_dir, basename + '/egg')
+            else:
+                self.egg_output = os.path.join(self.dist_dir, basename + '.egg')
 
     def do_install_data(self):
         # Hack for packages that install data to install's --install-lib
@@ -202,7 +206,7 @@ class bdist_egg(Command):
                               no_ep=1)
 
         self.copy_metadata_to(egg_info)
-        native_libs = os.path.join(egg_info, "native_libs.txt")
+        native_libs = os.path.join(egg_info, "native_libs"+os.extsep+"txt")
         if all_outputs:
             log.info("writing %s", native_libs)
             if not self.dry_run:
@@ -220,7 +224,8 @@ class bdist_egg(Command):
             os.path.join(archive_root, 'EGG-INFO'), self.zip_safe()
         )
 
-        if os.path.exists(os.path.join(self.egg_info, 'depends.txt')):
+        if os.path.exists(os.path.join(self.egg_info,
+                                       f'depends{os.extsep}txt')):
             log.warn(
                 "WARNING: 'depends.txt' will not be used by setuptools 0.6!\n"
                 "Use the install_requires/extras_require setup() args instead."
@@ -245,17 +250,20 @@ class bdist_egg(Command):
             for name in files:
                 path = os.path.join(base, name)
 
-                if name.endswith('.py'):
+                if name.endswith(os.extsep+'py'):
                     log.debug("Deleting %s", path)
                     os.unlink(path)
 
                 if base.endswith('__pycache__'):
                     path_old = path
 
-                    pattern = r'(?P<name>.+)\.(?P<magic>[^.]+)\.pyc'
+                    if os.name == '':
+                        pattern = r'(?P<name>.+)\.(?P<magic>[^.]+)\.pyc'
+                    else:
+                        pattern = r'(?P<name>.+)\.(?P<magic>[^.]+)\/pyc'
                     m = re.match(pattern, name)
                     path_new = os.path.join(
-                        base, os.pardir, m.group('name') + '.pyc')
+                        base, os.pardir, m.group('name')+os.extsep+'pyc')
                     log.info(
                         "Renaming file from [%s] to [%s]"
                         % (path_old, path_new))
@@ -376,9 +384,9 @@ def analyze_egg(egg_dir, stubs):
     safe = True
     for base, dirs, files in walk_egg(egg_dir):
         for name in files:
-            if name.endswith('.py') or name.endswith('.pyw'):
+            if name.endswith(os.extsep+'py') or name.endswith(os.extsep+'pyw'):
                 continue
-            elif name.endswith('.pyc') or name.endswith('.pyo'):
+            elif name.endswith(os.extsep+'pyc') or name.endswith(os.extsep+'pyo'):
                 # always scan, even if we already know we're not safe
                 safe = scan_module(egg_dir, base, name, stubs) and safe
     return safe

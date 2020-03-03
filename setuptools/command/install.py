@@ -4,6 +4,7 @@ import glob
 import warnings
 import platform
 import distutils.command.install as orig
+import os
 
 import setuptools
 
@@ -104,7 +105,7 @@ class install(orig.install):
         cmd.always_copy_from = '.'  # make sure local-dir eggs get installed
 
         # pick up setup-dir .egg files only: no .egg-info
-        cmd.package_index.scan(glob.glob('*.egg'))
+        cmd.package_index.scan(glob.glob(f'*{os.extsep}egg'))
 
         self.run_command('bdist_egg')
         args = [self.distribution.get_command_obj('bdist_egg').egg_output]
