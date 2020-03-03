@@ -13,7 +13,7 @@ here = os.path.dirname(__file__)
 
 def require_metadata():
     "Prevent improper installs without necessary metadata. See #659"
-    egg_info_dir = os.path.join(here, 'setuptools.egg-info')
+    egg_info_dir = os.path.join(here, 'setuptools'+os.extsep+'egg-info')
     if not os.path.exists(egg_info_dir):
         msg = (
             "Cannot build setuptools without metadata. "
@@ -24,7 +24,8 @@ def require_metadata():
 
 def read_commands():
     command_ns = {}
-    cmd_module_path = 'setuptools/command/__init__.py'
+    cmd_module_path = os.path.join('setuptools','command',
+                                   '__init__'+os.extsep+'py')
     init_path = os.path.join(here, cmd_module_path)
     with open(init_path) as init_file:
         exec(init_file.read(), command_ns)
@@ -44,11 +45,11 @@ def _gen_console_scripts():
     if any(os.environ.get(var) not in (None, "", "0") for var in var_names):
         return
     tmpl = "easy_install-{shortver} = setuptools.command.easy_install:main"
-    yield tmpl.format(shortver=sys.version[:3])
+    yield tmpl.format(shortver=sys.version[:3].replace('.',os.extsep))
 
 
 package_data = dict(
-    setuptools=['script (dev).tmpl', 'script.tmpl', 'site-patch.py'],
+    setuptools=['script (dev)/tmpl', 'script/tmpl', 'site-patch/py'],
 )
 
 force_windows_specific_files = (
@@ -114,16 +115,16 @@ setup_params = dict(
         ],
         "egg_info.writers": [
             "PKG-INFO = setuptools.command.egg_info:write_pkg_info",
-            "requires.txt = setuptools.command.egg_info:write_requirements",
-            "entry_points.txt = setuptools.command.egg_info:write_entries",
-            "eager_resources.txt = setuptools.command.egg_info:overwrite_arg",
+            f"requires{os.extsep}txt = setuptools.command.egg_info:write_requirements",
+            f"entry_points{os.extsep}txt = setuptools.command.egg_info:write_entries",
+            f"eager_resources{os.extsep}txt = setuptools.command.egg_info:overwrite_arg",
             (
-                "namespace_packages.txt = "
+                f"namespace_packages{os.extsep}txt = "
                 "setuptools.command.egg_info:overwrite_arg"
             ),
-            "top_level.txt = setuptools.command.egg_info:write_toplevel_names",
-            "depends.txt = setuptools.command.egg_info:warn_depends_obsolete",
-            "dependency_links.txt = setuptools.command.egg_info:overwrite_arg",
+            f"top_level{os.extsep}txt = setuptools.command.egg_info:write_toplevel_names",
+            f"depends{os.extsep}txt = setuptools.command.egg_info:warn_depends_obsolete",
+            f"dependency_links{os.extsep}txt = setuptools.command.egg_info:overwrite_arg",
         ],
         "console_scripts": list(_gen_console_scripts()),
         "setuptools.installation":

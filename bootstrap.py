@@ -30,9 +30,11 @@ minimal_egg_info = textwrap.dedent("""
     requires.txt = setuptools.command.egg_info:write_requirements
     """)
 
+if os.name == 'riscos':
+    minimal_egg_info.replace('.txt', '/txt')
 
 def ensure_egg_info():
-    if os.path.exists('setuptools.egg-info'):
+    if os.path.exists(f'setuptools{os.extsep}egg-info'):
         return
     print("adding minimal entry_points")
     build_egg_info()
@@ -43,13 +45,15 @@ def build_egg_info():
     Build a minimal egg-info, enough to invoke egg_info
     """
 
-    os.mkdir('setuptools.egg-info')
-    with io.open('setuptools.egg-info/entry_points.txt', 'w') as ep:
+    os.mkdir('setuptools'+os.extsep+'egg-info')
+    with io.open(os.path.join(f'setuptools{os.extsep}egg-info',
+                              f'entry_points{os.extsep}txt'),
+                              'w') as ep:
         ep.write(minimal_egg_info)
 
 
 def run_egg_info():
-    cmd = [sys.executable, 'setup.py', 'egg_info']
+    cmd = [sys.executable, f'setup{os.extsep}py', 'egg_info']
     print("Regenerating egg_info")
     subprocess.check_call(cmd)
     print("...and again.")

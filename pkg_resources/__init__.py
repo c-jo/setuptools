@@ -1446,7 +1446,7 @@ class NullProvider:
         return []
 
     def run_script(self, script_name, namespace):
-        script = 'scripts/' + script_name
+        script = 'scripts' + os.sep + script_name
         if not self.has_metadata(script):
             raise ResolutionError(
                 "Script {script!r} not found in metadata at {self.egg_info!r}"
@@ -1486,7 +1486,7 @@ class NullProvider:
     def _fn(self, base, resource_name):
         self._validate_resource_path(resource_name)
         if resource_name:
-            return os.path.join(base, *resource_name.split('/'))
+            return os.path.join(base, *resource_name.split(os.path.sep))
         return base
 
     @staticmethod
@@ -1826,7 +1826,8 @@ class ZipProvider(EggProvider):
     def _get_eager_resources(self):
         if self.eagers is None:
             eagers = []
-            for name in ('native_libs.txt', 'eager_resources.txt'):
+            for name in (f'native_libs{os.extsep}txt',
+                         f'eager_resources{os.extsep}txt'):
                 if self.has_metadata(name):
                     eagers.extend(self.get_metadata_lines(name))
             self.eagers = eagers
@@ -2071,14 +2072,15 @@ def dist_factory(path_item, entry, only):
     Return a dist_factory for a path_item and entry
     """
     lower = entry.lower()
-    is_meta = any(map(lower.endswith, ('.egg-info', '.dist-info')))
+    is_meta = any(map(lower.endswith,
+                  (os.extsep+'egg-info', os.extsep+'dist-info')))
     return (
         distributions_from_metadata
         if is_meta else
         find_distributions
         if not only and _is_egg_path(entry) else
         resolve_egg_link
-        if not only and lower.endswith('.egg-link') else
+        if not only and lower.endswith(os.extsep+'egg-link') else
         NoDists()
     )
 
@@ -2354,7 +2356,7 @@ def _is_egg_path(path):
     """
     Determine if given path appears to be an egg.
     """
-    return path.lower().endswith('.egg')
+    return path.lower().endswith(os.extsep+'egg')
 
 
 def _is_unpacked_egg(path):
@@ -2726,7 +2728,7 @@ class Distribution:
 
     def _build_dep_map(self):
         dm = {}
-        for name in 'requires.txt', 'depends.txt':
+        for name in f'requires{os.extsep}txt', f'depends{os.extsep}txt':
             for extra, reqs in split_sections(self._get_metadata(name)):
                 dm.setdefault(extra, []).extend(parse_requirements(reqs))
         return dm
@@ -2780,7 +2782,7 @@ class Distribution:
         self.insert_on(path, replace=replace)
         if path is sys.path:
             fixup_namespace_packages(self.location)
-            for pkg in self._get_metadata('namespace_packages.txt'):
+            for pkg in self._get_metadata('namespace_packages'+os.extsep+'txt'):
                 if pkg in sys.modules:
                     declare_namespace(pkg)
 
@@ -2857,7 +2859,7 @@ class Distribution:
             ep_map = self._ep_map
         except AttributeError:
             ep_map = self._ep_map = EntryPoint.parse_map(
-                self._get_metadata('entry_points.txt'), self
+                self._get_metadata(f'entry_points{os.extsep}txt'), self
             )
         if group is not None:
             return ep_map.get(group, {})
@@ -2940,9 +2942,9 @@ class Distribution:
             # ignore the inevitable setuptools self-conflicts  :(
             return
 
-        nsp = dict.fromkeys(self._get_metadata('namespace_packages.txt'))
+        nsp = dict.fromkeys(self._get_metadata(f'namespace_packages{os.extsep}txt'))
         loc = normalize_path(self.location)
-        for modname in self._get_metadata('top_level.txt'):
+        for modname in self._get_metadata(f'top_level{os.extsep}txt'):
             if (modname not in sys.modules or modname in nsp
                     or modname in _namespace_packages):
                 continue
