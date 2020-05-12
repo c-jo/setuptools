@@ -130,7 +130,7 @@ class _BuildMetaBackend(object):
 
         return requirements
 
-    def run_setup(self, setup_script='setup.py'):
+    def run_setup(self, setup_script=f'setup{os.extsep}py'):
         # Note that we can reuse our build directory between calls
         # Correctness comes first, then optimization later
         __file__ = setup_script
@@ -222,7 +222,7 @@ class _BuildMetaLegacyBackend(_BuildMetaBackend):
     bridge between the old packaging mechanism and the new packaging mechanism,
     and will eventually be removed.
     """
-    def run_setup(self, setup_script='setup.py'):
+    def run_setup(self, setup_script=f'setup{os.extsep}py'):
         # In order to maintain compatibility with scripts assuming that
         # the setup.py script is in a directory on the PYTHONPATH, inject
         # '' into sys.path. (pypa/setuptools#1642)

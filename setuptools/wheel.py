@@ -83,13 +83,13 @@ class Wheel:
         return pkg_resources.Distribution(
             project_name=self.project_name, version=self.version,
             platform=(None if self.platform == 'any' else get_platform()),
-        ).egg_name() + '.egg'
+        ).egg_name() + os.extsep+'egg'
 
     def get_dist_info(self, zf):
         # find the correct name of the .dist-info dir in the wheel file
         for member in zf.namelist():
             dirname = posixpath.dirname(member)
-            if (dirname.endswith('.dist-info') and
+            if (dirname.endswith(os.extsep+'dist-info') and
                     canonicalize_name(dirname).startswith(
                         canonicalize_name(self.project_name))):
                 return dirname
@@ -165,7 +165,7 @@ class Wheel:
         write_requirements(
             setup_dist.get_command_obj('egg_info'),
             None,
-            os.path.join(egg_info, 'requires.txt'),
+            os.path.join(egg_info, f'requires{os.extsep}txt'),
         )
 
     @staticmethod
@@ -199,13 +199,13 @@ class Wheel:
     @staticmethod
     def _fix_namespace_packages(egg_info, destination_eggdir):
         namespace_packages = os.path.join(
-            egg_info, 'namespace_packages.txt')
+            egg_info, f'namespace_packages{os.extsep}txt')
         if os.path.exists(namespace_packages):
             with open(namespace_packages) as fp:
                 namespace_packages = fp.read().split()
             for mod in namespace_packages:
                 mod_dir = os.path.join(destination_eggdir, *mod.split('.'))
-                mod_init = os.path.join(mod_dir, '__init__.py')
+                mod_init = os.path.join(mod_dir, f'__init__{os.extsep}py')
                 if os.path.exists(mod_dir) and not os.path.exists(mod_init):
                     with open(mod_init, 'w') as fp:
                         fp.write(NAMESPACE_PACKAGE_INIT)

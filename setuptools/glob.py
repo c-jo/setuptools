@@ -26,7 +26,6 @@ def glob(pathname, recursive=False):
     """
     return list(iglob(pathname, recursive=recursive))
 
-
 def iglob(pathname, recursive=False):
     """Return an iterator which yields the paths matching a pathname pattern.
 
@@ -94,9 +93,9 @@ def glob1(dirname, pattern):
             dirname = os.curdir.encode('ASCII')
         else:
             dirname = os.curdir
+    try:
         if os.name == 'riscos' and dirname[-1] == '.':
             dirname = dirname[:-1]
-    try:
         names = os.listdir(dirname)
     except OSError:
         return []
