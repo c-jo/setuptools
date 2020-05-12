@@ -41,6 +41,7 @@ import itertools
 import inspect
 import ntpath
 import posixpath
+import riscospath
 from pkgutil import get_importer
 
 try:
@@ -2795,6 +2796,9 @@ class Distribution:
 
         if self.platform:
             filename += '-' + self.platform
+
+        if sys.platform == 'riscos':
+            filename = filename.translate(str.maketrans('./','/.'))
         return filename
 
     def __repr__(self):
@@ -3050,9 +3054,9 @@ class DistInfoDistribution(Distribution):
 
 
 _distributionImpl = {
-    '.egg': Distribution,
-    '.egg-info': EggInfoDistribution,
-    '.dist-info': DistInfoDistribution,
+    os.extsep+'egg': Distribution,
+    os.extsep+'egg-info': EggInfoDistribution,
+    os.extsep+'dist-info': DistInfoDistribution,
 }
 
 
