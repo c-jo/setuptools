@@ -2590,6 +2590,8 @@ class Distribution:
                 project_name, version, py_version, platform = match.group(
                     'name', 'ver', 'pyver', 'plat'
                 )
+                if version and os.name == 'riscos':
+                    version = version.replace('/','.')
         return cls(
             location, metadata, project_name=project_name, version=version,
             py_version=py_version, platform=platform, **kw
