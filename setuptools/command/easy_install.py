@@ -1473,10 +1473,10 @@ def expand_paths(inputs):
         yield dirname, files
 
         for name in files:
-            if not name.endswith('.pth'):
+            if not name.endswith(os.extsep+'pth'):
                 # We only care about the .pth files
                 continue
-            if name in ('easy-install.pth', 'setuptools.pth'):
+            if name in (f'easy-install{os.extsep}pth', f'setuptools{os.extsep}pth'):
                 # Ignore .pth files that we control
                 continue
 

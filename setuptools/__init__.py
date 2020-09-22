@@ -66,7 +66,6 @@ class PackageFinder:
         specified, all found packages will be included.  'include' can contain
         shell style wildcard patterns just like 'exclude'.
         """
-
         return list(cls._find_packages_iter(
             convert_path(where),
             cls._build_filter('ez_setup', '*__pycache__', *exclude),

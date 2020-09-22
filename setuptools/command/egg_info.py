@@ -550,7 +550,9 @@ class manifest_maker(sdist):
 
     def _manifest_normalize(self, path):
         path = unicode_utils.filesys_decode(path)
-        return path# .replace(os.sep, '/')
+        if os.name == 'riscos':
+            return path.translate(str.maketrans('./','/.'))
+        return path.replace(os.sep, '/')
 
     def write_manifest(self):
         """

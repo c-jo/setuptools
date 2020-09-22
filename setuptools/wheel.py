@@ -83,7 +83,7 @@ class Wheel:
         return pkg_resources.Distribution(
             project_name=self.project_name, version=self.version,
             platform=(None if self.platform == 'any' else get_platform()),
-        ).egg_name() + os.extsep+'egg'
+        ).egg_name() + os.extsep + 'egg'
 
     def get_dist_info(self, zf):
         # find the correct name of the .dist-info dir in the wheel file
